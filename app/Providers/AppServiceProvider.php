@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,9 +23,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        JsonResource::withoutWrapping();
-        // This will prevent Laravel from wrapping the response in a "data" key
-        // used when you return a resource or a collection of resources. This is useful when you want to return the resource directly without the additional "data" wrapper.
-        //in cases of: paginated responses, collections, or single resources, the response will be returned directly without being wrapped in a "data" key.
-        }
+        ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
+            return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+
+            return Limit::perMinute(60)
+            ->by($request->user()?->id ?: $request->ip());
+        });
+    }
 }

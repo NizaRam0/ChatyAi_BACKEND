@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
+#[Group('Password Reset', 'Password reset request and completion', 3)]
 class PasswordResetLinkController extends Controller
 {
     /**
@@ -15,6 +18,7 @@ class PasswordResetLinkController extends Controller
      *
      * @throws ValidationException
      */
+    #[Endpoint(title: 'Send Password Reset Link', description: 'Send a password reset link to the provided email.')]
     public function store(Request $request): JsonResponse
     {
         $request->validate([

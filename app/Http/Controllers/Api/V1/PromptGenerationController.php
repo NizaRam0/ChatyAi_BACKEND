@@ -7,21 +7,78 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Services\OpenAIService;
 use App\Models\PromptGeneration;
+use App\Http\Requests\GeneratePromptRequest;
 use App\Http\Resources\PromptGenerationResource;
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
+
+#[Group('Prompt Generations', 'Upload images and generate prompts', 10)]
 class PromptGenerationController extends Controller
 
 {
     public function __construct(private OpenAIService $openAIService)
     {
     }
-    public function index() //return all image generations
+
+    #[Endpoint(title: 'List Prompt Generations', description: 'Get paginated prompt generations for the authenticated user.')]
+    public function index(Request $request) //return all image generations
     {
         $user=request()->user();
-        $PromptGeneration=$user->PromptGenerations()->latest()->paginate(10);
-        return PromptGenerationResource::collection($PromptGeneration);
+//search and filter functionality
+        $query = $user->PromptGenerations();
+        if ($request->filled('search')) {
+            $searchTerm = $request->query('search');
+
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('generated_prompt', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('mime_type', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        if ($request->filled('mime_type')) {
+            $query->where('mime_type', $request->query('mime_type'));
+        }
+
+        //sorting
+        $sorting_fields=[
+            'created_at',
+            'file_size', 
+            'mime_type',
+            'generated_prompt',
+            'original_file_name'
+        ];
+        $sort_field= 'created_at';//default sorting field
+        $sort_direction='desc';//default sorting direction
+        if ($request->has('sort') && !empty($request->query('sort'))) {
+           
+        $sort= $request->query('sort');
+            
+            if(str_starts_with($sort_field,'-')){
+                $sort_direction='desc';
+                $sort_field= substr($sort,1); //remove the leading '-' to get the actual field name
+            }else{
+                    $sort_field=$sort;
+                $sort_direction='asc';
+            }
+        }
+
+        if(!in_array($sort_field,$sorting_fields)){
+            $sort_field='created_at'; //default to created_at if invalid sort field is provided
+            $sort_direction='desc';
+        }
+
+        $query->orderBy($sort_field,$sort_direction);//apply the sort 
+
+
+//pagination
+        $promptGenerations = $query->paginate($request->query('per_page'));
+
+        return PromptGenerationResource::collection($promptGenerations);
     }
 
-    public function store(Request $request) //generate image from prompt
+    //public function store(Request $request) //generate image from prompt
+    #[Endpoint(title: 'Generate Prompt From Image', description: 'Upload an image file and generate a detailed prompt.')]
+    public function store(GeneratePromptRequest $request) //generate image from prompt
     {
         $user = $request->user();
         $image = $request->file('image');
@@ -36,7 +93,6 @@ class PromptGenerationController extends Controller
          * Retrieves the original file extension from the client-side filename
          * (e.g., 'jpg', 'png', 'gif', 'webp') without validating the actual file type.
          * 
-         * @var string $extension The file extension of the uploaded image
          */
         $safeFileName = $sanitizedName . '_' . time() .'_'.Str::random(10). '.' . $extension;
         $imagePath=$image->storeAs('uploads/images', $safeFileName,'public');

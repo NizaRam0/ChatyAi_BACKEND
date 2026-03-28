@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 
+#[Group('Authentication', 'Authentication and session management', 1)]
 class RegisteredUserController extends Controller
 {
     /**
@@ -19,6 +22,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
+    #[Endpoint(title: 'Register', description: 'Create a new user account.')]
     public function store(Request $request): Response
     {
         $request->validate([

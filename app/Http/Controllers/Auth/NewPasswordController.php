@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 
+#[Group('Password Reset', 'Password reset request and completion', 3)]
 class NewPasswordController extends Controller
 {
     /**
@@ -19,6 +22,7 @@ class NewPasswordController extends Controller
      *
      * @throws ValidationException
      */
+    #[Endpoint(title: 'Reset Password', description: 'Reset password using reset token, email, and new password.')]
     public function store(Request $request): JsonResponse
     {
         $request->validate([

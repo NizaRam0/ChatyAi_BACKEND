@@ -12,7 +12,8 @@ class GeneratePromptRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        //return true;
+        return auth()->check(); // Only allow authenticated users to make this request
     }
 
     /**

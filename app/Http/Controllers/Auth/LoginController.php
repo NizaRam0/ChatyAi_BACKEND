@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
@@ -11,11 +13,13 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 
+#[Group('Authentication', 'Authentication and session management', 1)]
 class LoginController extends Controller
 {
     /**
      * Handle an incoming authentication request.
      */
+    #[Endpoint(title: 'Login', description: 'Authenticate a user and return an access token.')]
     public function store(LoginRequest $request)//or return type array
     {
         $request->authenticate();
@@ -33,6 +37,7 @@ class LoginController extends Controller
     /**
      * Destroy an authenticated session.
      */
+    #[Endpoint(title: 'Logout', description: 'Revoke the current authenticated access token.')]
     public function destroy(Request $request): Response
     {
         // Auth::guard('web')->logout();

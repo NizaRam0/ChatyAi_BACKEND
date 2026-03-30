@@ -4,6 +4,7 @@ import UploadPage from '../pages/UploadPage.vue'
 import HistoryPage from '../pages/HistoryPage.vue'
 import LoginPage from '../pages/LoginPage.vue'
 import RegisterPage from '../pages/RegisterPage.vue'
+import ResetPasswordPage from '../pages/ResetPasswordPage.vue'
 import { getToken } from '../services/apiClient'
 
 // Route table kept intentionally small to focus the user on image generation features.
@@ -30,6 +31,17 @@ const routes = [
     name: 'register',
     component: RegisterPage,
   },
+  {
+    path: '/password-reset/:token',
+    name: 'password-reset',
+    component: ResetPasswordPage,
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../pages/UserProfile.vue'),
+    meta: { requiresAuth: true },
+  }
 ]
 
 const router = createRouter({
@@ -45,7 +57,7 @@ router.beforeEach((to) => {
     return { name: 'login', query: { next: to.fullPath } }
   }
 
-  if ((to.name === 'login' || to.name === 'register') && hasToken) {
+  if ((to.name === 'login' || to.name === 'register' || to.name === 'password-reset') && hasToken) {
     return { name: 'upload' }
   }
 

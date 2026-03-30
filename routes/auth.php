@@ -16,6 +16,10 @@ Route::post('/login', [LoginController::class, 'store'])
     ->middleware('guest')
     ->name('login');
 
+Route::post('/logout', [LoginController::class, 'destroy'])
+    ->middleware('auth:sanctum')
+    ->name('logout');
+
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
     ->middleware('guest')
     ->name('password.email');

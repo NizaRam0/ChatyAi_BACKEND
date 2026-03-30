@@ -21,7 +21,7 @@ export function clearToken() {
 }
 
 // Builds Authorization header only when token exists.
-function buildHeaders(customHeaders = {}) {
+export function buildHeaders(customHeaders = {}) {
   const token = getToken()
 
   return {
@@ -44,7 +44,7 @@ function toSearchParams(query = {}) {
 }
 
 // Creates a safe absolute URL from base + path and throws readable error when malformed.
-function buildApiUrl(path, query = {}, baseUrl = API_BASE_URL) {
+export function buildApiUrl(path, query = {}, baseUrl = API_BASE_URL) {
   const normalizedBase = String(baseUrl || '').trim().replace(/\/+$/, '')
   const normalizedPath = String(path || '').startsWith('/') ? path : `/${path}`
 
@@ -65,7 +65,7 @@ function buildApiUrl(path, query = {}, baseUrl = API_BASE_URL) {
 }
 
 // Safely reads JSON bodies and tolerates empty or non-JSON responses.
-async function safeJson(response) {
+export async function safeJson(response) {
   const contentType = response.headers.get('content-type') || ''
   if (!contentType.includes('application/json')) return null
 
@@ -77,7 +77,7 @@ async function safeJson(response) {
 }
 
 // Normalizes backend errors so UI can show clear messages.
-async function parseError(response) {
+export async function parseError(response) {
   const payload = (await safeJson(response)) || {}
 
   const validationErrors = payload?.errors

@@ -1,35 +1,46 @@
 <?php
 
 use App\Models\User;
+use Laravel\Sanctum\PersonalAccessToken;
 
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 
-    $response = $this->post('/login', [
+    $response = $this->postJson('/api/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertNoContent();
+    $response
+        ->assertOk()
+        ->assertJsonStructure([
+            'user' => ['id', 'name', 'email'],
+            'token',
+        ]);
 });
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $this->post('/login', [
+    $response = $this->postJson('/api/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
 
-    $this->assertGuest();
+    $response->assertStatus(422)->assertJsonValidationErrors(['email']);
 });
 
 test('users can logout', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test-token')->plainTextToken;
 
-    $response = $this->actingAs($user)->post('/logout');
+    $tokenId = explode('|', $token)[0];
 
-    $this->assertGuest();
+    $response = $this
+        ->withHeader('Authorization', 'Bearer '.$token)
+        ->postJson('/api/logout');
+
     $response->assertNoContent();
+
+    expect(PersonalAccessToken::find($tokenId))->toBeNull();
 });

@@ -3,7 +3,7 @@
 import { reactive, ref } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import InlineAlert from "../components/InlineAlert.vue";
-import { loginUser } from "../services/authService";
+import { loginUser, requestPasswordReset } from "../services/authService";
 
 const router = useRouter();
 const route = useRoute();
@@ -14,6 +14,9 @@ const form = reactive({
 });
 
 const loading = ref(false);
+const resetLoading = ref(false);
+const showForgotPanel = ref(false);
+const resetEmail = ref("");
 const errorMessage = ref("");
 const successMessage = ref("");
 
@@ -35,6 +38,31 @@ async function submitLogin() {
     } finally {
         loading.value = false;
     }
+}
+
+// Sends forgot-password request so backend can email a reset link.
+async function submitForgotPassword() {
+    resetLoading.value = true;
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    try {
+        const emailToUse = resetEmail.value || form.email;
+        await requestPasswordReset(emailToUse);
+        successMessage.value =
+            "If that email exists, a reset link has been sent.";
+    } catch (error) {
+        errorMessage.value =
+            error?.message || "Could not request password reset right now.";
+    } finally {
+        resetLoading.value = false;
+    }
+}
+
+// Toggles forgot-password panel and pre-fills email from login form.
+function toggleForgotPanel() {
+    showForgotPanel.value = !showForgotPanel.value;
+    resetEmail.value = form.email;
 }
 </script>
 
@@ -78,6 +106,41 @@ async function submitLogin() {
                         type="password"
                         required
                     />
+                </div>
+
+                <button
+                    class="forgot-link"
+                    type="button"
+                    @click="toggleForgotPanel"
+                >
+                    {{
+                        showForgotPanel
+                            ? "Hide forgot password"
+                            : "Forgot password?"
+                    }}
+                </button>
+
+                <div v-if="showForgotPanel" class="forgot-panel">
+                    <label for="reset-email">Reset email</label>
+                    <input
+                        id="reset-email"
+                        v-model="resetEmail"
+                        class="input"
+                        type="email"
+                        required
+                    />
+                    <button
+                        class="btn btn-secondary"
+                        type="button"
+                        :disabled="resetLoading"
+                        @click="submitForgotPassword"
+                    >
+                        {{
+                            resetLoading
+                                ? "Sending reset link..."
+                                : "Send reset link"
+                        }}
+                    </button>
                 </div>
 
                 <button
@@ -131,5 +194,31 @@ async function submitLogin() {
 .switch-link a {
     color: var(--accent);
     font-weight: 700;
+}
+
+.forgot-link {
+    width: fit-content;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0;
+    margin-top: -0.25rem;
+    cursor: pointer;
+}
+
+.forgot-panel {
+    border: 1px solid var(--stroke-soft);
+    background: var(--surface-muted);
+    border-radius: 12px;
+    padding: 0.7rem;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.forgot-panel label {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 </style>

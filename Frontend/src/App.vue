@@ -91,6 +91,9 @@ onUnmounted(() => {
                     <RouterLink :class="tabClass('/history')" to="/history"
                         >History</RouterLink
                     >
+                    <RouterLink :class="tabClass('/profile')" to="/profile"
+                        >Profile</RouterLink
+                    >
                 </template>
                 <template v-else>
                     <RouterLink :class="tabClass('/login')" to="/login"
@@ -116,7 +119,7 @@ onUnmounted(() => {
 
 <style scoped>
 .center-tabs-wrap {
-    margin-top: 0.7rem;
+    margin-top: 4%;
 }
 
 .center-tabs {

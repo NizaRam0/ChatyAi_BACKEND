@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['*'],
+    'paths' => ['*'],//allow all paths for CORS
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['*'],//allow all HTTP methods for CORS
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],//allow only the frontend URL for CORS
 
     'allowed_origins_patterns' => [],
 
